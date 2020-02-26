@@ -17,6 +17,9 @@ from wrapt import wrap_function_wrapper as wrap_function, ObjectProxy
 
 from . import application, handlers, httpclient
 
+_PATCH_METHODS = [
+    'get', 'head', 'post', 'delete', 'patch', 'put', 'options',
+]
 
 def init_tracing():
     _patch_tornado()
@@ -33,6 +36,15 @@ def init_client_tracing(tracer=None, start_span_cb=None):
     _patch_tornado_client(tracer, start_span_cb)
 
 
+def _patch_handler_init(func, handler, args, kwargs):
+    func(*args, **kwargs)
+    for method in _PATCH_METHODS: 
+        handlers.wrap_method(handler, method)
+
+def _unpatch_handler_methods(handler):
+    for method in _PATCH_METHODS: 
+        handlers.unwrap_method(handler, method)
+
 def _patch_tornado():
     # patch only once
     if getattr(tornado, '__opentracing_patch', False) is True:
@@ -43,8 +55,13 @@ def _patch_tornado():
     wrap_function('tornado.web', 'Application.__init__',
                   application.tracer_config)
 
-    wrap_function('tornado.web', 'RequestHandler._execute',
-                  handlers.execute)
+    wrap_function('tornado.web', 'RequestHandler.__init__',
+                  _patch_handler_init)
+
+    #wrap_function('tornado.web', 'RequestHandler.__init__',
+    #              handlers.handler_init)
+    #wrap_function('tornado.web', 'RequestHandler._execute',
+    #              handlers.execute)
     wrap_function('tornado.web', 'RequestHandler.on_finish',
                   handlers.on_finish)
     wrap_function('tornado.web', 'RequestHandler.log_exception',
@@ -76,8 +93,9 @@ def _unpatch_tornado():
     setattr(tornado, '__opentracing_patch', False)
 
     _unpatch(tornado.web.Application, '__init__')
+    _unpatch_handler_methods(tornado.web.RequestHandler)
 
-    _unpatch(tornado.web.RequestHandler, '_execute')
+    _unpatch(tornado.web.RequestHandler, '__init__')
     _unpatch(tornado.web.RequestHandler, 'on_finish')
     _unpatch(tornado.web.RequestHandler, 'log_exception')
 

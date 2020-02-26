@@ -12,9 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
+from functools import wraps
+
+from types import MethodType
 from tornado.web import HTTPError
 
 from opentracing.scope_managers.tornado import tracer_stack_context
+
+def wrap_method(handler, method_name):
+    original = handler.__getattribute__(method_name)  
+
+    @wraps(original)
+    def wrapper(self, *args, **kwargs):
+        tracing = self.settings.get('opentracing_tracing')
+        attrs = self.settings.get('opentracing_traced_attributes', [])
+        tracing._apply_tracing(self, attrs)
+        return original(*args, **kwargs)
+
+    bound_wrapper = wrapper.__get__(handler, handler.__class__)
+    setattr(handler, method_name, bound_wrapper)
 
 
 def execute(func, handler, args, kwargs):
@@ -22,6 +39,7 @@ def execute(func, handler, args, kwargs):
     Wrap the handler ``_execute`` method to trace incoming requests,
     extracting the context from the headers, if available.
     """
+
     tracing = handler.settings.get('opentracing_tracing')
 
     with tracer_stack_context():
@@ -37,6 +55,7 @@ def on_finish(func, handler, args, kwargs):
     Wrap the handler ``on_finish`` method to finish the Span for the
     given request, if available.
     """
+
     tracing = handler.settings.get('opentracing_tracing')
     tracing._finish_tracing(handler)
 
