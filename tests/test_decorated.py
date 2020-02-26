@@ -49,6 +49,7 @@ class DecoratedCoroutineHandler(tornado.web.RequestHandler):
     @tracing.trace('protocol', 'doesntexist')
     @tornado.gen.coroutine
     def get(self):
+        print('helloooooo')
         yield tornado.gen.sleep(0)
         self.set_status(201)
         self.write('{}')
