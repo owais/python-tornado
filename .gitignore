@@ -1,4 +1,5 @@
 *.pyc
+.vscode
 dist
 bin
 eggs
@@ -6,3 +7,4 @@ lib
 *.egg-info
 build
 env/
+.pytest_cache/*

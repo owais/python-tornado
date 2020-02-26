@@ -41,10 +41,6 @@ def _patch_handler_init(func, handler, args, kwargs):
     for method in _PATCH_METHODS: 
         handlers.wrap_method(handler, method)
 
-def _unpatch_handler_methods(handler):
-    for method in _PATCH_METHODS: 
-        handlers.unwrap_method(handler, method)
-
 def _patch_tornado():
     # patch only once
     if getattr(tornado, '__opentracing_patch', False) is True:
@@ -58,8 +54,6 @@ def _patch_tornado():
     wrap_function('tornado.web', 'RequestHandler.__init__',
                   _patch_handler_init)
 
-    #wrap_function('tornado.web', 'RequestHandler.__init__',
-    #              handlers.handler_init)
     #wrap_function('tornado.web', 'RequestHandler._execute',
     #              handlers.execute)
     wrap_function('tornado.web', 'RequestHandler.on_finish',
@@ -93,7 +87,6 @@ def _unpatch_tornado():
     setattr(tornado, '__opentracing_patch', False)
 
     _unpatch(tornado.web.Application, '__init__')
-    _unpatch_handler_methods(tornado.web.RequestHandler)
 
     _unpatch(tornado.web.RequestHandler, '__init__')
     _unpatch(tornado.web.RequestHandler, 'on_finish')

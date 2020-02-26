@@ -17,13 +17,11 @@ import unittest
 
 import opentracing
 from opentracing.mocktracer import MockTracer
-from opentracing.scope_managers.tornado import TornadoScopeManager
-from opentracing.scope_managers.tornado import tracer_stack_context
 import tornado.gen
 import tornado.web
 import tornado.testing
 import tornado_opentracing
-from tornado_opentracing import TornadoTracing
+from tornado_opentracing import TornadoTracing, ScopeManager, trace_context
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -121,7 +119,7 @@ class TestTornadoTracingBase(tornado.testing.AsyncHTTPTestCase):
 
 class TestInitWithoutTracingObj(TestTornadoTracingBase):
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(start_span_cb=self.start_span_cb)
 
     def start_span_cb(self, span, request):
@@ -154,7 +152,7 @@ def tracer_callable(tracer):
 
 class TestInitWithTracerCallable(TestTornadoTracingBase):
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(tracer_callable=tracer_callable, tracer_parameters={
             'tracer': self.tracer,
         })
@@ -172,7 +170,7 @@ class TestInitWithTracerCallable(TestTornadoTracingBase):
 
 class TestInitWithTracerCallableStr(TestTornadoTracingBase):
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(tracer_callable='tests.test_tracing.tracer_callable',
                         tracer_parameters={
                             'tracer': self.tracer
@@ -191,7 +189,7 @@ class TestInitWithTracerCallableStr(TestTornadoTracingBase):
 
 class TestTracing(TestTornadoTracingBase):
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(self.tracer, trace_client=False)
 
     def test_simple(self):
@@ -263,7 +261,7 @@ class TestTracing(TestTornadoTracingBase):
 
 class TestNoTraceAll(TestTornadoTracingBase):
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(self.tracer, trace_all=False, trace_client=False)
 
     def test_simple(self):
@@ -276,7 +274,7 @@ class TestNoTraceAll(TestTornadoTracingBase):
 
 class TestTracedAttributes(TestTornadoTracingBase):
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(self.tracer,
                         trace_client=False,
                         traced_attributes=[
@@ -311,7 +309,7 @@ class TestStartSpanCallback(TestTornadoTracingBase):
         span.set_tag('custom-tag', 'custom-value')
 
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(self.tracer,
                         trace_client=False,
                         start_span_cb=self.start_span_cb)
@@ -339,7 +337,7 @@ class TestStartSpanCallbackException(TestTornadoTracingBase):
         raise RuntimeError('This should not happen')
 
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(self.tracer,
                         trace_client=False,
                         start_span_cb=self.start_span_cb)
@@ -355,12 +353,12 @@ class TestStartSpanCallbackException(TestTornadoTracingBase):
 
 class TestClient(TestTornadoTracingBase):
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(self.tracer,
                         trace_all=False)
 
     def test_simple(self):
-        with tracer_stack_context():
+        with trace_context():
             self.http_client.fetch(self.get_url('/'), self.stop)
 
         response = self.wait()
@@ -381,7 +379,7 @@ class TestClient(TestTornadoTracingBase):
 
 class TestClientCallback(TestTornadoTracingBase):
     def get_app(self):
-        self.tracer = MockTracer(TornadoScopeManager())
+        self.tracer = MockTracer(ScopeManager())
         return make_app(self.tracer,
                         trace_all=False,
                         start_span_cb=self.start_span_cb)
@@ -392,7 +390,7 @@ class TestClientCallback(TestTornadoTracingBase):
         span.set_tag('custom-tag', 'custom-value')
 
     def test_simple(self):
-        with tracer_stack_context():
+        with trace_context():
             self.http_client.fetch(self.get_url('/'), self.stop)
 
         response = self.wait()

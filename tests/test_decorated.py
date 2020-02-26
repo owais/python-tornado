@@ -13,15 +13,13 @@
 # limitations under the License.
 
 from opentracing.mocktracer import MockTracer
-from opentracing.scope_managers.tornado import TornadoScopeManager
-from opentracing.scope_managers.tornado import tracer_stack_context
 import tornado.gen
 import tornado.web
 import tornado.testing
 import tornado_opentracing
+from tornado_opentracing import ScopeManager, trace_context
 
-
-tracing = tornado_opentracing.TornadoTracing(MockTracer(TornadoScopeManager()))
+tracing = tornado_opentracing.TornadoTracing(MockTracer(ScopeManager()))
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -263,7 +261,7 @@ class TestClientIntegration(tornado.testing.AsyncHTTPTestCase):
     def test_simple(self):
         tornado_opentracing.init_client_tracing(tracing)
 
-        with tracer_stack_context():
+        with trace_context():
             self.http_client.fetch(self.get_url('/decorated'), self.stop)
 
         response = self.wait()
