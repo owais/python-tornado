@@ -18,7 +18,6 @@ from functools import wraps
 from types import MethodType
 from tornado.web import HTTPError
 
-from opentracing.scope_managers.tornado import tracer_stack_context
 
 def wrap_method(handler, method_name):
     original = handler.__getattribute__(method_name)  
@@ -32,22 +31,6 @@ def wrap_method(handler, method_name):
 
     bound_wrapper = wrapper.__get__(handler, handler.__class__)
     setattr(handler, method_name, bound_wrapper)
-
-
-def execute(func, handler, args, kwargs):
-    """
-    Wrap the handler ``_execute`` method to trace incoming requests,
-    extracting the context from the headers, if available.
-    """
-
-    tracing = handler.settings.get('opentracing_tracing')
-
-    with tracer_stack_context():
-        if tracing._trace_all:
-            attrs = handler.settings.get('opentracing_traced_attributes', [])
-            tracing._apply_tracing(handler, attrs)
-
-        return func(*args, **kwargs)
 
 
 def on_finish(func, handler, args, kwargs):

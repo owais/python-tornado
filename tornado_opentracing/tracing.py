@@ -17,9 +17,24 @@ import wrapt
 
 import opentracing
 from opentracing.ext import tags
-from opentracing.scope_managers.tornado import tracer_stack_context
+from tornado import version_info as tornado_version
+
+if tornado_version < (6, 0, 0, 0):
+    print("using tornado context stack")
+    from opentracing.scope_managers import tracer_stack_context as trace_context
+else:
+    def trace_context():
+        return _NoopContextManager()
 
 from ._constants import SCOPE_ATTR
+
+
+class _NoopContextManager(object):
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *_):
+        pass
 
 
 class TornadoTracing(object):
@@ -73,7 +88,7 @@ class TornadoTracing(object):
 
             handler = instance
 
-            with tracer_stack_context():
+            with trace_context():
                 try:
                     self._apply_tracing(handler, list(attributes))
 
