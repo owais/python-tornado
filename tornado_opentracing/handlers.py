@@ -39,9 +39,6 @@ def execute(func, handler, args, kwargs):
     Wrap the handler ``_execute`` method to trace incoming requests,
     extracting the context from the headers, if available.
     """
-    print('*******')
-    print(handler.settings)
-    print('*******')
     tracing = handler.settings.get('opentracing_tracing')
 
     with trace_context():

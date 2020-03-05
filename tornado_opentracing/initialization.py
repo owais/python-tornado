@@ -38,6 +38,11 @@ def init_client_tracing(tracer=None, start_span_cb=None):
 
 def _patch_handler_init(func, handler, args, kwargs):
     func(*args, **kwargs)
+
+    tracing = handler.settings.get('opentracing_tracing')
+    if not tracing._trace_all:
+        return
+
     for method in _PATCH_METHODS: 
         handlers.wrap_method(handler, method)
 
@@ -53,9 +58,6 @@ def _patch_tornado():
 
     wrap_function('tornado.web', 'RequestHandler.__init__',
                   _patch_handler_init)
-
-    #wrap_function('tornado.web', 'RequestHandler._execute',
-    #              handlers.execute)
     wrap_function('tornado.web', 'RequestHandler.on_finish',
                   handlers.on_finish)
     wrap_function('tornado.web', 'RequestHandler.log_exception',

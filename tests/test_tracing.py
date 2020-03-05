@@ -23,6 +23,14 @@ import tornado.testing
 import tornado_opentracing
 from tornado_opentracing import TornadoTracing, ScopeManager, trace_context
 
+from .test_case import AsyncHTTPTestCase
+from .helpers import use_generators
+
+if use_generators:
+    from .tracing_generator_handlers import ScopeHandler
+else:
+    from .tracing_async_handlers import ScopeHandler
+
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -32,28 +40,6 @@ class MainHandler(tornado.web.RequestHandler):
 class ErrorHandler(tornado.web.RequestHandler):
     def get(self):
         raise ValueError('invalid input')
-
-
-class ScopeHandler(tornado.web.RequestHandler):
-    @tornado.gen.coroutine
-    def do_something(self):
-        tracing = self.settings.get('opentracing_tracing')
-        with tracing.tracer.start_active_span('Child'):
-            tracing.tracer.active_span.set_tag('start', 0)
-            yield tornado.gen.sleep(0.0)
-            tracing.tracer.active_span.set_tag('end', 1)
-
-    @tornado.gen.coroutine
-    def get(self):
-        tracing = self.settings.get('opentracing_tracing')
-        span = tracing.get_span(self.request)
-        assert span is not None
-        assert tracing.tracer.active_span is span
-
-        yield self.do_something()
-
-        assert tracing.tracer.active_span is span
-        self.write('{}')
 
 
 def make_app(tracer=None, tracer_callable=None, tracer_parameters={},
@@ -106,7 +92,7 @@ class TestTornadoTracingValues(unittest.TestCase):
             tornado_opentracing.TornadoTracing(start_span_cb=[])
 
 
-class TestTornadoTracingBase(tornado.testing.AsyncHTTPTestCase):
+class TestTornadoTracingBase(AsyncHTTPTestCase):
     def setUp(self):
         tornado_opentracing.init_tracing()
         super(TestTornadoTracingBase, self).setUp()
@@ -209,7 +195,7 @@ class TestTracing(TestTornadoTracingBase):
         })
 
     def test_error(self):
-        response = self.fetch('/error')
+        response = self.http_fetch(self.get_url('/error'))
         self.assertEqual(response.code, 500)
 
         spans = self.tracer.finished_spans()
@@ -229,7 +215,7 @@ class TestTracing(TestTornadoTracingBase):
         ))
 
     def test_scope(self):
-        response = self.fetch('/coroutine_scope')
+        response = self.http_fetch(self.get_url('/coroutine_scope'))
         self.assertEqual(response.code, 200)
 
         spans = self.tracer.finished_spans()
@@ -265,7 +251,7 @@ class TestNoTraceAll(TestTornadoTracingBase):
         return make_app(self.tracer, trace_all=False, trace_client=False)
 
     def test_simple(self):
-        response = self.fetch('/')
+        response = self.http_fetch(self.get_url('/'))
         self.assertEqual(response.code, 200)
 
         spans = self.tracer.finished_spans()
@@ -359,9 +345,8 @@ class TestClient(TestTornadoTracingBase):
 
     def test_simple(self):
         with trace_context():
-            self.http_client.fetch(self.get_url('/'), self.stop)
+            response = self.http_fetch(self.get_url('/'), self.stop)
 
-        response = self.wait()
         self.assertEqual(response.code, 200)
 
         spans = self.tracer.finished_spans()
@@ -391,9 +376,8 @@ class TestClientCallback(TestTornadoTracingBase):
 
     def test_simple(self):
         with trace_context():
-            self.http_client.fetch(self.get_url('/'), self.stop)
+            response = self.http_fetch(self.get_url('/'), self.stop)
 
-        response = self.wait()
         self.assertEqual(response.code, 200)
 
         spans = self.tracer.finished_spans()
