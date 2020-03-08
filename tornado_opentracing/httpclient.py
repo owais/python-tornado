@@ -84,7 +84,7 @@ def fetch_async(func, handler, args, kwargs):
 
     tracer.inject(span.context,
                   opentracing.Format.HTTP_HEADERS,
-                  dict(request.headers))
+                  request.headers)
 
     # Call the start_span_cb, if any.
     _call_start_span_cb(span, request)
@@ -100,11 +100,8 @@ def fetch_async(func, handler, args, kwargs):
 
 
 def _finish_tracing_callback(future, span):
-    print("future:: ", future)
-    print("span:: ", span)
     status_code = None
     exc = future.exception()
-    print('exception:: ', future.exception())
     if exc:
         # Tornado uses HTTPError to report some of the
         # codes other than 2xx, so check the code is

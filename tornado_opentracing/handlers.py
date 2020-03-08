@@ -20,6 +20,7 @@ from tornado.web import HTTPError
 
 from .context_manager import trace_context
 
+
 def wrap_method(handler, method_name):
     original = handler.__getattribute__(method_name)  
 

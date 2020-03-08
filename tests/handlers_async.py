@@ -1,6 +1,11 @@
 import asyncio
 
 import tornado.web
+import tornado_opentracing
+from opentracing.mocktracer import MockTracer
+from tornado_opentracing import ScopeManager, trace_context
+
+tracing = tornado_opentracing.TornadoTracing(MockTracer(ScopeManager()))
 
 class ScopeHandler(tornado.web.RequestHandler):
     async def do_something(self):
@@ -20,3 +25,4 @@ class ScopeHandler(tornado.web.RequestHandler):
 
         assert tracing.tracer.active_span is span
         self.write('{}')
+

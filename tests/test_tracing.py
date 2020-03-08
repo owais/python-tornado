@@ -24,12 +24,7 @@ import tornado_opentracing
 from tornado_opentracing import TornadoTracing, ScopeManager, trace_context
 
 from .test_case import AsyncHTTPTestCase
-from .helpers import use_generators
-
-if use_generators:
-    from .tracing_generator_handlers import ScopeHandler
-else:
-    from .tracing_async_handlers import ScopeHandler
+from .handlers import ScopeHandler
 
 
 class MainHandler(tornado.web.RequestHandler):
