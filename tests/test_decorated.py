@@ -28,6 +28,9 @@ from .handlers_async import DecoratedAsyncHandler, DecoratedAsyncScopeHandler, D
 from .tracing import tracing
 
 
+async_await_not_supported = sys.version_info < (3, 5) or tornado_version < (5, 0),
+
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         # Not being traced.
@@ -53,9 +56,12 @@ class DecoratedCoroutineHandler(tornado.web.RequestHandler):
     @tracing.trace('protocol', 'doesntexist')
     @tornado.gen.coroutine
     def get(self):
+        print('>>>>>>>>entered handler')
         yield tornado.gen.sleep(0)
         self.set_status(201)
+        print('>>>>>>>>wrote status')
         self.write('{}')
+        print('>>>>>>>>wrote reply')
 
 
 class DecoratedCoroutineErrorHandler(tornado.web.RequestHandler):
@@ -161,6 +167,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
+    # TODO: make sure async decorator is only used for actual async functions
     @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason="doesn't work with newer tornado")
     def test_coroutine(self):
         response = self.fetch('/decorated_coroutine')
@@ -233,7 +240,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(child.context.trace_id, parent.context.trace_id)
         self.assertEqual(child.parent_id, parent.context.span_id)
 
-    @pytest.mark.skipif(sys.version_info < (3, 5), reason="not supported on <3.5")
+    @pytest.mark.skipif(async_await_not_supported, reason="not supported on <3.5")
     def test_async(self):
         response = self.fetch('/decorated_async')
         self.assertEqual(response.code, 201)
@@ -251,7 +258,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             'protocol': 'http',
         })
 
-    @pytest.mark.skipif(sys.version_info < (3, 5), reason="not supported on <3.5")
+    @pytest.mark.skipif(async_await_not_supported, reason="not supported on <3.5")
     def test_async_error(self):
         response = self.fetch('/decorated_async_error')
         self.assertEqual(response.code, 500)
@@ -273,7 +280,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
-    @pytest.mark.skipif(sys.version_info < (3, 5), reason="not supported on <3.5")
+    @pytest.mark.skipif(async_await_not_supported, reason="not supported on <3.5")
     def test_async_scope(self):
         response = self.fetch('/decorated_async_scope')
         self.assertEqual(response.code, 201)
