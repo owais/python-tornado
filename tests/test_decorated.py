@@ -171,6 +171,8 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
 
     @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
         'tornado6 has a bug (#2716) that prevents contextvars from working.'))
+    @pytest.mark.skipif(sys.version_info.major == 3 and sys.version_info.minor == 4, reason=(
+        'does not work on 3.4 with tornado context stack currently.'))
     def test_coroutine(self):
         response = self.fetch('/decorated_coroutine')
         self.assertEqual(response.code, 201)
@@ -190,6 +192,8 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
 
     @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
         'tornado6 has a bug (#2716) that prevents contextvars from working.'))
+    @pytest.mark.skipif(sys.version_info.major == 3 and sys.version_info.minor == 4, reason=(
+        'does not work on 3.4 with tornado context stack currently.'))
     def test_coroutine_error(self):
         response = self.fetch('/decorated_coroutine_error')
         self.assertEqual(response.code, 500)
@@ -213,6 +217,8 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
 
     @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
         'tornado6 has a bug (#2716) that prevents contextvars from working.'))
+    @pytest.mark.skipif(sys.version_info.major == 3 and sys.version_info.minor == 4, reason=(
+        'does not work on 3.4 with tornado context stack currently.'))
     def test_coroutine_scope(self):
         response = self.fetch('/decorated_coroutine_scope')
         self.assertEqual(response.code, 201)
