@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
+import sys
+
 import pytest
 from opentracing.mocktracer import MockTracer
 from tornado import version_info as tornado_version
@@ -23,8 +24,8 @@ import tornado_opentracing
 from tornado_opentracing import ScopeManager, trace_context
 
 from .test_case import AsyncHTTPTestCase
-
-tracing = tornado_opentracing.TornadoTracing(MockTracer(ScopeManager()))
+from .handlers_async import DecoratedAsyncHandler, DecoratedAsyncScopeHandler, DecoratedAsyncErrorHandler
+from .tracing import tracing
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -81,41 +82,6 @@ class DecoratedCoroutineScopeHandler(tornado.web.RequestHandler):
         assert tracing.tracer.active_span is span
 
         yield self.do_something()
-
-        assert tracing.tracer.active_span is span
-        self.set_status(201)
-        self.write('{}')
-
-
-class DecoratedAsyncHandler(tornado.web.RequestHandler):
-    @tracing.trace('protocol', 'doesntexist')
-    async def get(self):
-        await asyncio.sleep(0)
-        self.set_status(201)
-        self.write('{}')
-
-
-class DecoratedAsyncErrorHandler(tornado.web.RequestHandler):
-    @tracing.trace()
-    async def get(self):
-        await asyncio.sleep(0)
-        raise ValueError('invalid value')
-
-
-class DecoratedAsyncScopeHandler(tornado.web.RequestHandler):
-    async def do_something(self):
-        with tracing.tracer.start_active_span('Child'):
-            tracing.tracer.active_span.set_tag('start', 0)
-            await asyncio.sleep(0)
-            tracing.tracer.active_span.set_tag('end', 1)
-
-    @tracing.trace()
-    async def get(self):
-        span = tracing.get_span(self.request)
-        assert span is not None
-        assert tracing.tracer.active_span is span
-
-        await self.do_something()
 
         assert tracing.tracer.active_span is span
         self.set_status(201)
@@ -267,8 +233,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(child.context.trace_id, parent.context.trace_id)
         self.assertEqual(child.parent_id, parent.context.span_id)
 
-    # TODO: skip if python version < 3.7
-    # @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason="doesn't work with newer tornado")
+    @pytest.mark.skipif(sys.version_info >= (3, 5), reason="not supported on <3.5")
     def test_async(self):
         response = self.fetch('/decorated_async')
         self.assertEqual(response.code, 201)
@@ -286,7 +251,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             'protocol': 'http',
         })
 
-    #@pytest.mark.skipif(tornado_version >= (6, 0, 0), reason="doesn't work with newer tornado")
+    @pytest.mark.skipif(sys.version_info >= (3, 5), reason="not supported on <3.5")
     def test_async_error(self):
         response = self.fetch('/decorated_async_error')
         self.assertEqual(response.code, 500)
@@ -308,7 +273,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
-    #@pytest.mark.skipif(tornado_version >= (6, 0, 0), reason="doesn't work with newer tornado")
+    @pytest.mark.skipif(sys.version_info >= (3, 5), reason="not supported on <3.5")
     def test_async_scope(self):
         response = self.fetch('/decorated_async_scope')
         self.assertEqual(response.code, 201)

@@ -1,28 +1,20 @@
-import asyncio
+import sys
 
 import tornado.web
-import tornado_opentracing
-from opentracing.mocktracer import MockTracer
-from tornado_opentracing import ScopeManager, trace_context
 
-tracing = tornado_opentracing.TornadoTracing(MockTracer(ScopeManager()))
+if sys.version_info < (3, 5):
+    from .handlers_coroutine import (
+        AsyncScopeHandler, DecoratedAsyncHandler, DecoratedAsyncScopeHandler, DecoratedAsyncErrorHandler
+    )
 
-class ScopeHandler(tornado.web.RequestHandler):
-    async def do_something(self):
-        tracing = self.settings.get('opentracing_tracing')
-        with tracing.tracer.start_active_span('Child'):
-            tracing.tracer.active_span.set_tag('start', 0)
-            await asyncio.sleep(0)
-            tracing.tracer.active_span.set_tag('end', 1)
 
-    async def get(self):
-        tracing = self.settings.get('opentracing_tracing')
-        span = tracing.get_span(self.request)
-        assert span is not None
-        assert tracing.tracer.active_span is span
 
-        await self.do_something()
+class noopHandler(tornado.web.RequestHandler):
+    def get(self):
+        pass
 
-        assert tracing.tracer.active_span is span
-        self.write('{}')
 
+AsyncScopeHandler = noopHandler
+DecoratedAsyncHandler = noopHandler
+DecoratedAsyncScopeHandler = noopHandler
+DecoratedAsyncErrorHandler = noopHandler

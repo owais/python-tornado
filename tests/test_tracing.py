@@ -12,19 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import mock
 import unittest
 
+import pytest
 import opentracing
 from opentracing.mocktracer import MockTracer
 import tornado.gen
 import tornado.web
 import tornado.testing
 import tornado_opentracing
+from tornado import version_info as tornado_version
 from tornado_opentracing import TornadoTracing, ScopeManager, trace_context
 
 from .test_case import AsyncHTTPTestCase
-from .handlers import ScopeHandler
+from .handlers_async import AsyncScopeHandler
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -35,6 +38,28 @@ class MainHandler(tornado.web.RequestHandler):
 class ErrorHandler(tornado.web.RequestHandler):
     def get(self):
         raise ValueError('invalid input')
+
+
+class CoroutineScopeHandler(tornado.web.RequestHandler):
+    @tornado.gen.coroutine
+    def do_something(self):
+        tracing = self.settings.get('opentracing_tracing')
+        with tracing.tracer.start_active_span('Child'):
+            tracing.tracer.active_span.set_tag('start', 0)
+            yield tornado.gen.sleep(0.0)
+            tracing.tracer.active_span.set_tag('end', 1)
+
+    @tornado.gen.coroutine
+    def get(self):
+        tracing = self.settings.get('opentracing_tracing')
+        span = tracing.get_span(self.request)
+        assert span is not None
+        assert tracing.tracer.active_span is span
+
+        yield self.do_something()
+
+        assert tracing.tracer.active_span is span
+        self.write('{}')
 
 
 def make_app(tracer=None, tracer_callable=None, tracer_parameters={},
@@ -61,7 +86,8 @@ def make_app(tracer=None, tracer_callable=None, tracer_parameters={},
         [
             ('/', MainHandler),
             ('/error', ErrorHandler),
-            ('/coroutine_scope', ScopeHandler),
+            ('/coroutine_scope', CoroutineScopeHandler),
+            ('/async_scope', AsyncScopeHandler),
         ],
         **settings
     )
@@ -209,7 +235,8 @@ class TestTracing(TestTornadoTracingBase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
-    def test_scope(self):
+    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason="doesn't work with newer tornado")
+    def test_scope_coroutine(self):
         response = self.http_fetch(self.get_url('/coroutine_scope'))
         self.assertEqual(response.code, 200)
 
@@ -231,6 +258,37 @@ class TestTracing(TestTornadoTracingBase):
             'component': 'tornado',
             'span.kind': 'server',
             'http.url': '/coroutine_scope',
+            'http.method': 'GET',
+            'http.status_code': 200,
+        })
+
+        # Same trace.
+        self.assertEqual(child.context.trace_id, parent.context.trace_id)
+        self.assertEqual(child.parent_id, parent.context.span_id)
+
+    @pytest.mark.skipif(sys.version_info >= (3, 5), reason="not supported on <3.5")
+    def test_scope_async(self):
+        response = self.http_fetch(self.get_url('/async_scope'))
+        self.assertEqual(response.code, 200)
+
+        spans = self.tracer.finished_spans()
+        self.assertEqual(len(spans), 2)
+
+        child = spans[0]
+        self.assertTrue(child.finished)
+        self.assertEqual(child.operation_name, 'Child')
+        self.assertEqual(child.tags, {
+            'start': 0,
+            'end': 1,
+        })
+
+        parent = spans[1]
+        self.assertTrue(parent.finished)
+        self.assertEqual(parent.operation_name, 'ScopeHandler')
+        self.assertEqual(parent.tags, {
+            'component': 'tornado',
+            'span.kind': 'server',
+            'http.url': '/async_scope',
             'http.method': 'GET',
             'http.status_code': 200,
         })
