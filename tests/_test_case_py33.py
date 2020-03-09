@@ -28,5 +28,4 @@ class AsyncHTTPTestCase(BaseAsyncHTTPTestCase):
         fetch = self._http_fetch_gen
         if use_wait_stop:
             fetch = super().http_fetch
-            # fetch = self._http_fetch_wait_stop
         return fetch(url, *args, **kwargs)

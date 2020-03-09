@@ -1,5 +1,4 @@
 import tornado.testing
-from tornado.httpclient import HTTPError
 
 
 class BaseAsyncHTTPTestCase(tornado.testing.AsyncHTTPTestCase):
