@@ -9,6 +9,7 @@ python:
 sudo: required
 
 install:
+  - pip install tox tox-travis
   - make bootstrap
 
 script:
