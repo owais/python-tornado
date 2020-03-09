@@ -10,4 +10,5 @@ lib
 *.egg-info
 build
 env/
+venv/
 .pytest_cache/*
