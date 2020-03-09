@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import mock
 import unittest
 
@@ -27,6 +28,11 @@ from tornado_opentracing import TornadoTracing, ScopeManager, trace_context
 
 from .test_case import AsyncHTTPTestCase
 from .handlers_async import AsyncScopeHandler
+
+
+async_await_not_supported = (
+    sys.version_info < (3, 5) or tornado_version < (5, 0)
+)
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -266,8 +272,10 @@ class TestTracing(TestTornadoTracingBase):
         self.assertEqual(child.context.trace_id, parent.context.trace_id)
         self.assertEqual(child.parent_id, parent.context.span_id)
 
-    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
-        'tornado6 has a bug (#2716) that prevents contextvars from working.'))
+    @pytest.mark.skipif(
+        async_await_not_supported,
+        reason='not supported on py <3.5'
+    )
     def test_scope_async(self):
         response = self.http_fetch(self.get_url('/async_scope'))
         self.assertEqual(response.code, 200)
