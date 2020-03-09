@@ -22,7 +22,7 @@ setup(
         'tests': [
             'flake8<3',  # see https://github.com/zheller/flake8-quotes/issues/29
             'flake8-quotes',
-            'pytest>=5.0',
+            'pytest>=4.6.9',
             'pytest-cov',
             'mock',
         ],
