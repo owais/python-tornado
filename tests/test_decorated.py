@@ -233,7 +233,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(child.context.trace_id, parent.context.trace_id)
         self.assertEqual(child.parent_id, parent.context.span_id)
 
-    @pytest.mark.skipif(sys.version_info >= (3, 5), reason="not supported on <3.5")
+    @pytest.mark.skipif(sys.version_info < (3, 5), reason="not supported on <3.5")
     def test_async(self):
         response = self.fetch('/decorated_async')
         self.assertEqual(response.code, 201)
@@ -251,7 +251,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             'protocol': 'http',
         })
 
-    @pytest.mark.skipif(sys.version_info >= (3, 5), reason="not supported on <3.5")
+    @pytest.mark.skipif(sys.version_info < (3, 5), reason="not supported on <3.5")
     def test_async_error(self):
         response = self.fetch('/decorated_async_error')
         self.assertEqual(response.code, 500)
@@ -273,7 +273,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
-    @pytest.mark.skipif(sys.version_info >= (3, 5), reason="not supported on <3.5")
+    @pytest.mark.skipif(sys.version_info < (3, 5), reason="not supported on <3.5")
     def test_async_scope(self):
         response = self.fetch('/decorated_async_scope')
         self.assertEqual(response.code, 201)

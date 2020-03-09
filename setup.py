@@ -24,6 +24,7 @@ setup(
             'flake8-quotes',
             'pytest>=5.0',
             'pytest-cov',
+            'mock',
         ],
     },
     classifiers=[

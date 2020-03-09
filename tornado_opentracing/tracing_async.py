@@ -1,6 +1,8 @@
 import asyncio
 import inspect
+
 import wrapt
+import functools
 
 from .tracing_base import  BaseTornadoTracing
 from .context_manager import trace_context

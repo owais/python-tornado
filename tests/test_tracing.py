@@ -253,7 +253,7 @@ class TestTracing(TestTornadoTracingBase):
 
         parent = spans[1]
         self.assertTrue(parent.finished)
-        self.assertEqual(parent.operation_name, 'ScopeHandler')
+        self.assertEqual(parent.operation_name, 'CoroutineScopeHandler')
         self.assertEqual(parent.tags, {
             'component': 'tornado',
             'span.kind': 'server',
@@ -266,7 +266,7 @@ class TestTracing(TestTornadoTracingBase):
         self.assertEqual(child.context.trace_id, parent.context.trace_id)
         self.assertEqual(child.parent_id, parent.context.span_id)
 
-    @pytest.mark.skipif(sys.version_info >= (3, 5), reason="not supported on <3.5")
+    @pytest.mark.skipif(sys.version_info < (3, 5), reason="not supported on <3.5")
     def test_scope_async(self):
         response = self.http_fetch(self.get_url('/async_scope'))
         self.assertEqual(response.code, 200)
