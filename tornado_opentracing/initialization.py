@@ -21,6 +21,7 @@ _PATCH_METHODS = [
     'get', 'head', 'post', 'delete', 'patch', 'put', 'options',
 ]
 
+
 def init_tracing():
     _patch_tornado()
     _patch_tornado_client()
@@ -43,8 +44,9 @@ def _patch_handler_init(func, handler, args, kwargs):
     if not tracing._trace_all:
         return
 
-    for method in _PATCH_METHODS: 
+    for method in _PATCH_METHODS:
         handlers.wrap_method(handler, method)
+
 
 def _patch_tornado():
     # patch only once

@@ -1,11 +1,9 @@
 import asyncio
 
 import tornado.web
-import tornado_opentracing
-from opentracing.mocktracer import MockTracer
-from tornado_opentracing import ScopeManager, trace_context
 
 from .tracing import tracing
+
 
 class AsyncScopeHandler(tornado.web.RequestHandler):
     async def do_something(self):

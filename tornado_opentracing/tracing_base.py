@@ -17,7 +17,6 @@ import wrapt
 
 import opentracing
 from opentracing.ext import tags
-from tornado import version_info as tornado_version
 
 from .context_manager import trace_context
 from ._constants import SCOPE_ATTR

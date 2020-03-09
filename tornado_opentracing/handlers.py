@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
 from functools import wraps
 
-from types import MethodType
 from tornado.web import HTTPError
 
 from .context_manager import trace_context
 
 
 def wrap_method(handler, method_name):
-    original = handler.__getattribute__(method_name)  
+    original = handler.__getattribute__(method_name)
 
     @wraps(original)
     def wrapper(self, *args, **kwargs):

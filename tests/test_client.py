@@ -190,11 +190,8 @@ class TestClient(AsyncHTTPTestCase):
 
         with trace_context():
             response = self.http_fetch(self.get_url('/error'))
-            
-        print('response::: ', response)
 
         self.assertEqual(response.code, 500)
-
         spans = self.tracer.finished_spans()
         self.assertEqual(len(spans), 1)
         self.assertTrue(spans[0].finished)
@@ -202,7 +199,6 @@ class TestClient(AsyncHTTPTestCase):
 
         tags = spans[0].tags
         self.assertEqual(tags.get('http.status_code', None), 500)
-        print('error is:: ', tags)
         self.assertEqual(tags.get('error', None), True)
 
         logs = spans[0].logs
@@ -217,7 +213,10 @@ class TestClient(AsyncHTTPTestCase):
         tornado_opentracing.init_client_tracing(self.tracer)
 
         with trace_context():
-            response = self.http_fetch(self.get_url('/doesnotexist'), raise_error=False)
+            response = self.http_fetch(
+                self.get_url('/doesnotexist'),
+                raise_error=False
+            )
 
         self.assertEqual(response.code, 404)
 

@@ -3,14 +3,14 @@ import tornado.testing
 from tornado.httpclient import HTTPError
 from tornado import version_info as tornado_version
 
-use_wait_stop = tornado_version < (5,0,0)
+use_wait_stop = tornado_version < (5, 0, 0)
 
 if use_wait_stop:
     def gen_test(func):
         return func
 else:
     gen_test = tornado.testing.gen_test
-    
+
 
 class AsyncHTTPTestCase(tornado.testing.AsyncHTTPTestCase):
 

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import mock
 import unittest
 
@@ -235,7 +234,8 @@ class TestTracing(TestTornadoTracingBase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
-    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason="doesn't work with newer tornado")
+    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
+        'tornado6 has a bug (#2716) that prevents contextvars from working.'))
     def test_scope_coroutine(self):
         response = self.http_fetch(self.get_url('/coroutine_scope'))
         self.assertEqual(response.code, 200)
@@ -266,7 +266,8 @@ class TestTracing(TestTornadoTracingBase):
         self.assertEqual(child.context.trace_id, parent.context.trace_id)
         self.assertEqual(child.parent_id, parent.context.span_id)
 
-    @pytest.mark.skipif(sys.version_info < (3, 5), reason="not supported on <3.5")
+    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
+        'tornado6 has a bug (#2716) that prevents contextvars from working.'))
     def test_scope_async(self):
         response = self.http_fetch(self.get_url('/async_scope'))
         self.assertEqual(response.code, 200)
