@@ -61,12 +61,9 @@ class DecoratedCoroutineHandler(tornado.web.RequestHandler):
     @tracing.trace('protocol', 'doesntexist')
     @tornado.gen.coroutine
     def get(self):
-        print('>>>>>>>>entered handler')
         yield tornado.gen.sleep(0)
         self.set_status(201)
-        print('>>>>>>>>wrote status')
         self.write('{}')
-        print('>>>>>>>>wrote reply')
 
 
 class DecoratedCoroutineErrorHandler(tornado.web.RequestHandler):

@@ -103,9 +103,7 @@ class BaseTornadoTracing(object):
         return full_class_name.rsplit('.')[-1]  # package-less name.
 
     def _finish_tracing_callback(self, future, handler):
-        print('callback got called')
         error = future.exception()
-        print('error is:: ', error)
         self._finish_tracing(handler, error=error)
 
     def _apply_tracing(self, handler, attributes):

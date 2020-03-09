@@ -25,6 +25,7 @@ setup(
             'pytest>=4.6.9',
             'pytest-cov',
             'mock',
+            'tox',
         ],
     },
     classifiers=[

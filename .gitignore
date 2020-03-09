@@ -1,3 +1,5 @@
+.python-version
+.tox
 *.pyc
 .vscode
 dist
