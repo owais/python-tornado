@@ -284,7 +284,7 @@ class TestTracing(TestTornadoTracingBase):
 
         parent = spans[1]
         self.assertTrue(parent.finished)
-        self.assertEqual(parent.operation_name, 'ScopeHandler')
+        self.assertEqual(parent.operation_name, 'AsyncScopeHandler')
         self.assertEqual(parent.tags, {
             'component': 'tornado',
             'span.kind': 'server',

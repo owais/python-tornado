@@ -7,7 +7,7 @@ from tornado_opentracing import ScopeManager, trace_context
 
 from .tracing import tracing
 
-class ScopeHandler(tornado.web.RequestHandler):
+class AsyncScopeHandler(tornado.web.RequestHandler):
     async def do_something(self):
         tracing = self.settings.get('opentracing_tracing')
         with tracing.tracer.start_active_span('Child'):
