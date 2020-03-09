@@ -8,7 +8,6 @@ else:
     def trace_context():
         return _NoopContextManager()
 
-print('\n\n\ntrace context being used is::: ', trace_context)
 
 class _NoopContextManager(object):
     def __enter__(self):

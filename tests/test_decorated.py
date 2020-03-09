@@ -61,11 +61,9 @@ class DecoratedCoroutineHandler(tornado.web.RequestHandler):
     @tracing.trace('protocol', 'doesntexist')
     @tornado.gen.coroutine
     def get(self):
-        print('enter handler')
         yield tornado.gen.sleep(0)
         self.set_status(201)
         self.write('{}')
-        print('leave handler')
 
 
 class DecoratedCoroutineErrorHandler(tornado.web.RequestHandler):
@@ -176,10 +174,8 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
     def test_coroutine(self):
         response = self.fetch('/decorated_coroutine')
         self.assertEqual(response.code, 201)
-        print('tracer used:: ', tracing.tracer)
 
         spans = tracing.tracer.finished_spans()
-        print('\n\n... spans::', spans)
         self.assertEqual(len(spans), 1)
         self.assertTrue(spans[0].finished)
         self.assertEqual(spans[0].operation_name, 'DecoratedCoroutineHandler')
