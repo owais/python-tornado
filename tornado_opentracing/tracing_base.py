@@ -73,12 +73,18 @@ class BaseTornadoTracing(object):
 
             handler = instance
 
-            with trace_context():
+            print('\n\ntrace context is:: ', trace_context)
+            with trace_context() as ctx:
+                print('\n... and context is:: ', ctx)
+                print(ctx())
                 try:
+                    print('\n\n--- gonna apply tracing')
                     self._apply_tracing(handler, list(attributes))
 
+                    print('will run the function...')
                     # Run the actual function.
                     result = wrapped(*args, **kwargs)
+                    print('\n\n\n\ngot result:: ', result)
 
                     # if it has `add_done_callback` it's a Future,
                     # else, a normal method/function.
@@ -86,11 +92,13 @@ class BaseTornadoTracing(object):
                         callback = functools.partial(
                                 self._finish_tracing_callback,
                                 handler=handler)
+                        print('adding callback to handler')
                         result.add_done_callback(callback)
                     else:
                         self._finish_tracing(handler)
 
                 except Exception as exc:
+                    print('*********************************** got exception::: ', exc)
                     self._finish_tracing(handler, error=exc)
                     raise
 
@@ -104,6 +112,7 @@ class BaseTornadoTracing(object):
 
     def _finish_tracing_callback(self, future, handler):
         error = future.exception()
+        print('finish callback with handler:: ', handler)
         self._finish_tracing(handler, error=error)
 
     def _apply_tracing(self, handler, attributes):
@@ -147,6 +156,8 @@ class BaseTornadoTracing(object):
         return scope
 
     def _finish_tracing(self, handler, error=None):
+        print('finished tracing....')
+        print('tracer used self:: ', id(self.tracer))
         scope = getattr(handler.request, SCOPE_ATTR, None)
         if scope is None:
             return
@@ -163,6 +174,7 @@ class BaseTornadoTracing(object):
             scope.span.set_tag(tags.HTTP_STATUS_CODE, handler.get_status())
 
         scope.close()
+        print('closed the scope. ended span.')
 
     def _call_start_span_cb(self, span, request):
         if self._start_span_cb is None:

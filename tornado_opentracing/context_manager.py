@@ -5,10 +5,10 @@ if tornado_version < (6, 0):
         tracer_stack_context as trace_context
     )
 else:
-
     def trace_context():
         return _NoopContextManager()
 
+print('\n\n\ntrace context being used is::: ', trace_context)
 
 class _NoopContextManager(object):
     def __enter__(self):
