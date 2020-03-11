@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
-import pytest
-from tornado import version_info as tornado_version
 import tornado.gen
 import tornado.web
 import tornado.testing

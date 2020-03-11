@@ -16,7 +16,6 @@ import sys
 import mock
 import unittest
 
-import pytest
 import opentracing
 from opentracing.mocktracer import MockTracer
 import tornado.gen
@@ -28,6 +27,10 @@ from tornado_opentracing import TornadoTracing, ScopeManager, trace_context
 
 from .test_case import AsyncHTTPTestCase
 from .handlers_async import AsyncScopeHandler
+from .helpers import (
+    skip_generator_contextvars_on_tornado6,
+    skip_no_async_await,
+)
 
 
 async_await_not_supported = (
@@ -240,8 +243,7 @@ class TestTracing(TestTornadoTracingBase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
-    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
-        'tornado6 has a bug (#2716) that prevents contextvars from working.'))
+    @skip_generator_contextvars_on_tornado6
     def test_scope_coroutine(self):
         response = self.http_fetch(self.get_url('/coroutine_scope'))
         self.assertEqual(response.code, 200)
@@ -272,10 +274,7 @@ class TestTracing(TestTornadoTracingBase):
         self.assertEqual(child.context.trace_id, parent.context.trace_id)
         self.assertEqual(child.parent_id, parent.context.span_id)
 
-    @pytest.mark.skipif(
-        async_await_not_supported,
-        reason='not supported on py <3.5'
-    )
+    @skip_no_async_await
     def test_scope_async(self):
         response = self.http_fetch(self.get_url('/async_scope'))
         self.assertEqual(response.code, 200)

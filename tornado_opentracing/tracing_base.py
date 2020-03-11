@@ -73,7 +73,7 @@ class BaseTornadoTracing(object):
 
             handler = instance
 
-            with trace_context() as ctx:
+            with trace_context():
                 try:
                     self._apply_tracing(handler, list(attributes))
 

@@ -1,14 +1,7 @@
 import sys
 
 import pytest
-
 from tornado import version_info as tornado_version
-
-#is_tornado6 = 
-
-#    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
-
-#sys.version_info.major == 3 and sys.version_info.minor == 4, reason=(
 
 
 def skip_generator_contextvars_on_tornado6(func):
@@ -19,7 +12,6 @@ def skip_generator_contextvars_on_tornado6(func):
             'prevents contextvars from working.'
         )
     )(func)
-
 
 
 def skip_generator_contextvars_on_py34(func):
