@@ -29,10 +29,10 @@ from .handlers_async import (
     DecoratedAsyncScopeHandler,
     DecoratedAsyncErrorHandler
 )
-
-
-async_await_not_supported = (
-    sys.version_info < (3, 5) or tornado_version < (5, 0)
+from .helpers import (
+    skip_generator_contextvars_on_tornado6,
+    skip_generator_contextvars_on_py34,
+    skip_no_async_await,
 )
 
 
@@ -169,10 +169,8 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
-    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
-        'tornado6 has a bug (#2716) that prevents contextvars from working.'))
-    @pytest.mark.skipif(sys.version_info.major == 3 and sys.version_info.minor == 4, reason=(
-        'does not work on 3.4 with tornado context stack currently.'))
+    @skip_generator_contextvars_on_tornado6
+    @skip_generator_contextvars_on_py34
     def test_coroutine(self):
         response = self.fetch('/decorated_coroutine')
         self.assertEqual(response.code, 201)
@@ -190,10 +188,8 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             'protocol': 'http',
         })
 
-    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
-        'tornado6 has a bug (#2716) that prevents contextvars from working.'))
-    @pytest.mark.skipif(sys.version_info.major == 3 and sys.version_info.minor == 4, reason=(
-        'does not work on 3.4 with tornado context stack currently.'))
+    @skip_generator_contextvars_on_tornado6
+    @skip_generator_contextvars_on_py34
     def test_coroutine_error(self):
         response = self.fetch('/decorated_coroutine_error')
         self.assertEqual(response.code, 500)
@@ -215,10 +211,8 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
-    @pytest.mark.skipif(tornado_version >= (6, 0, 0), reason=(
-        'tornado6 has a bug (#2716) that prevents contextvars from working.'))
-    @pytest.mark.skipif(sys.version_info.major == 3 and sys.version_info.minor == 4, reason=(
-        'does not work on 3.4 with tornado context stack currently.'))
+    @skip_generator_contextvars_on_tornado6
+    @skip_generator_contextvars_on_py34
     def test_coroutine_scope(self):
         response = self.fetch('/decorated_coroutine_scope')
         self.assertEqual(response.code, 201)
@@ -250,10 +244,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(child.context.trace_id, parent.context.trace_id)
         self.assertEqual(child.parent_id, parent.context.span_id)
 
-    @pytest.mark.skipif(
-        async_await_not_supported,
-        reason='not supported on py <3.5'
-    )
+    @skip_no_async_await
     def test_async(self):
         response = self.fetch('/decorated_async')
         self.assertEqual(response.code, 201)
@@ -271,10 +262,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             'protocol': 'http',
         })
 
-    @pytest.mark.skipif(
-        async_await_not_supported,
-        reason='not supported on py <3.5'
-    )
+    @skip_no_async_await
     def test_async_error(self):
         response = self.fetch('/decorated_async_error')
         self.assertEqual(response.code, 500)
@@ -296,10 +284,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
             logs[0].key_values.get('error.object', None), ValueError
         ))
 
-    @pytest.mark.skipif(
-        async_await_not_supported,
-        reason='not supported on py <3.5'
-    )
+    @skip_no_async_await
     def test_async_scope(self):
         response = self.fetch('/decorated_async_scope')
         self.assertEqual(response.code, 201)
