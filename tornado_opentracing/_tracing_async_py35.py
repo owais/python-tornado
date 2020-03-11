@@ -1,7 +1,7 @@
 import inspect
 import functools
 
-from .tracing_base import BaseTornadoTracing
+from ._tracing import BaseTornadoTracing
 from .context_manager import trace_context
 
 
