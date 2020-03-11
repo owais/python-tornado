@@ -20,7 +20,7 @@ setup(
     ],
     extras_require={
         'tests': [
-            'flake8<3',  # see https://github.com/zheller/flake8-quotes/issues/29
+            'flake8<4',  # see https://github.com/zheller/flake8-quotes/issues/29
             'flake8-quotes',
             'pytest>=4.6.9',
             'pytest-cov',

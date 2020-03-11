@@ -7,7 +7,6 @@ from .tracing import tracing
 
 class AsyncScopeHandler(tornado.web.RequestHandler):
     async def do_something(self):
-        xyz ="okokok"
         tracing = self.settings.get('opentracing_tracing')
         with tracing.tracer.start_active_span('Child'):
             tracing.tracer.active_span.set_tag('start', 0)
