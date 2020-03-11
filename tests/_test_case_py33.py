@@ -18,7 +18,6 @@ class AsyncHTTPTestCase(BaseAsyncHTTPTestCase):
 
     @gen_test
     def _http_fetch_gen(self, url, *args, **kwargs):
-        xyz ="okokok"
         try:
             response = yield self.http_client.fetch(url, *args, **kwargs)
         except HTTPError as exc:
