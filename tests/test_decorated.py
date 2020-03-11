@@ -50,7 +50,7 @@ class DecoratedErrorHandler(tornado.web.RequestHandler):
     @tracing.trace()
     def get(self):
         assert tracing.get_span(self.request) is not None
-        raise ValueError('invalid value')
+        raise ValueError("invalid value")
 
 
 class DecoratedCoroutineHandler(tornado.web.RequestHandler):
