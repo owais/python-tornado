@@ -115,8 +115,8 @@ class BaseTornadoTracing(object):
         # error = future.exception()
         exc_info = future.exc_info()
         if exc_info:
-            self._finish_tracing(handler, error=exc_info[1], tb=exc_info[2])
-            #self._finish_tracing(handler)
+            # self._finish_tracing(handler, error=exc_info[1], tb=exc_info[2])
+            self._finish_tracing(handler, error=exc_info[1])
             return
         self._finish_tracing(handler)
 
