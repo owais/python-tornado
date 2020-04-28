@@ -14,6 +14,7 @@
 
 import functools
 import traceback
+import sys
 import wrapt
 
 import opentracing
