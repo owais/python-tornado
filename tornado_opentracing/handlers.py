@@ -57,12 +57,15 @@ def log_exception(func, handler, args, kwargs):
     is not handled in the user code.
     """
     # safe-guard: expected arguments -> log_exception(self, typ, value, tb)
-    value = args[1] if len(args) == 3 else None
-    if value is None:
+    error = tb = None
+    if len(args) == 3:
+        _, error, tb = args
+
+    if error is None:
         return func(*args, **kwargs)
 
     tracing = handler.settings.get('opentracing_tracing')
-    if not isinstance(value, HTTPError) or 500 <= value.status_code <= 599:
-        tracing._finish_tracing(handler, error=value)
+    if not isinstance(error, HTTPError) or 500 <= error.status_code <= 599:
+        tracing._finish_tracing(handler, error=error, tb=tb)
 
     return func(*args, **kwargs)

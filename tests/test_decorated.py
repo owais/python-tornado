@@ -159,6 +159,9 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(tags.get('sfx.error.kind', None), 'ValueError')
         self.assertEqual(tags.get('sfx.error.object', None), '<class \'ValueError\'>')
         self.assertEqual(tags.get('sfx.error.message', None), 'invalid value')
+        assert 'sfx.error.stack' in tags
+        assert 'invalid value' in tags['sfx.error.stack']
+        assert len(tags['sfx.error.stack']) > 50
 
     @skip_generator_contextvars_on_tornado6
     @skip_generator_contextvars_on_py34
@@ -196,6 +199,9 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(tags.get('sfx.error.kind', None), 'ValueError')
         self.assertEqual(tags.get('sfx.error.object', None), '<class \'ValueError\'>')
         self.assertEqual(tags.get('sfx.error.message', None), 'invalid value')
+        assert 'fx.error.stack' in tags
+        assert 'invalid value' in tags['sfx.error.stack']
+        assert len(tags['sfx.error.stack']) > 50
 
     @skip_generator_contextvars_on_tornado6
     @skip_generator_contextvars_on_py34

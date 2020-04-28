@@ -8,6 +8,7 @@ such as linters that it should be only be taken into account
 for Python3.5 and above.
 """
 
+import sys
 import inspect
 import functools
 
@@ -55,7 +56,8 @@ class AsyncTornadoTracing(BaseTornadoTracing):
                     tracing._handle_wrapped_result(handler, result)
 
                 except Exception as exc:
-                    tracing._finish_tracing(handler, error=exc)
+                    tb = sys.exc_info()[2]
+                    tracing._finish_tracing(handler, error=exc, tb=tb)
                     raise
 
             def __get__(self, instance, owner):

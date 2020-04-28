@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import functools
+import traceback
 import wrapt
 
 import opentracing
@@ -92,7 +93,11 @@ class BaseTornadoTracing(object):
                     result = wrapped(*args, **kwargs)
                     self._handle_wrapped_result(handler, result)
                 except Exception as exc:
-                    self._finish_tracing(handler, error=exc)
+                    print('********************* trace decorator called')
+                    _, _, tb = sys.exc_info()
+                    print('tracback:: ', tb)
+                    print('*********************')
+                    self._finish_tracing(handler, error=exc, tb=tb)
                     raise
 
             return result
@@ -104,7 +109,11 @@ class BaseTornadoTracing(object):
         return full_class_name.rsplit('.')[-1]  # package-less name.
 
     def _finish_tracing_callback(self, future, handler):
+        print('****************')
+        print('handling future')
         error = future.exception()
+        print('fiture error:: ', error)
+        print('****************')
         self._finish_tracing(handler, error=error)
 
     def _apply_tracing(self, handler, attributes):
@@ -147,7 +156,7 @@ class BaseTornadoTracing(object):
 
         return scope
 
-    def _finish_tracing(self, handler, error=None):
+    def _finish_tracing(self, handler, error=None, tb=None):
         scope = getattr(handler.request, SCOPE_ATTR, None)
         if scope is None:
             return
@@ -159,6 +168,8 @@ class BaseTornadoTracing(object):
             scope.span.set_tag('sfx.error.message', str(error))
             scope.span.set_tag('sfx.error.object', str(error.__class__))
             scope.span.set_tag('sfx.error.kind', error.__class__.__name__)
+            if tb:
+                scope.span.set_tag('sfx.error.stack', ''.join(traceback.format_tb(tb)))
         else:
             scope.span.set_tag(tags.HTTP_STATUS_CODE, handler.get_status())
 
