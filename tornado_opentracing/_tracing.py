@@ -166,7 +166,10 @@ class BaseTornadoTracing(object):
             scope.span.set_tag('sfx.error.object', str(error.__class__))
             scope.span.set_tag('sfx.error.kind', error.__class__.__name__)
             if tb:
-                scope.span.set_tag('sfx.error.stack', ''.join(traceback.format_tb(tb)))
+                scope.span.set_tag(
+                    'sfx.error.stack',
+                    ''.join(traceback.format_tb(tb))
+                )
         else:
             scope.span.set_tag(tags.HTTP_STATUS_CODE, handler.get_status())
 
