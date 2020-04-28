@@ -33,7 +33,7 @@ from .helpers.markers import (
 
 error_object = '<class \'ValueError\'>')
 if sys.version_info.major == 2:
-    error_object = '<class \'exceptions.ValueError\'>')
+    error_object = '<class \'exceptions.ValueError\'>'
 
 
 class MainHandler(tornado.web.RequestHandler):
