@@ -35,9 +35,9 @@ from .helpers.markers import (
 )
 
 
-error_object = '<class \'ValueError\'>'
+error_object = "<class 'ValueError'>"
 if sys.version_info.major == 2:
-    error_object = '<type \'exceptions.ValueError\'>'
+    error_object = "<type 'exceptions.ValueError'>"
 
 async_await_not_supported = (
     sys.version_info < (3, 5) or tornado_version < (5, 0)

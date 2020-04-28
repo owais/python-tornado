@@ -33,9 +33,10 @@ from .helpers.markers import (
     skip_no_async_await,
 )
 
-error_object = '<class \'ValueError\'>'
+
+error_object = "<class 'ValueError'>"
 if sys.version_info.major == 2:
-    error_object = '<type \'exceptions.ValueError\'>'
+    error_object = "<type 'exceptions.ValueError'>"
 
 
 class MainHandler(tornado.web.RequestHandler):
