@@ -113,10 +113,12 @@ class BaseTornadoTracing(object):
         print('****************')
         print('handling future')
         # error = future.exception()
-        _, error, tb = future.exc_info()
-        print('fiture error:: ', error)
-        print('****************')
-        self._finish_tracing(handler, error=error)
+        exc_info = future.exc_info()
+        if exc_info:
+            #self._finish_tracing(handler, error=exc_info[1], tb=exc_info[2])
+            self._finish_tracing(handler)
+            return
+        self._finish_tracing(handler)
 
     def _apply_tracing(self, handler, attributes):
         """
