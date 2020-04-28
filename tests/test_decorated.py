@@ -31,6 +31,10 @@ from .helpers.markers import (
     skip_no_async_await,
 )
 
+error_object = '<class \'ValueError\'>')
+if sys.version_info.major == 2:
+    error_object = '<class \'exceptions.ValueError\'>')
+
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -157,7 +161,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         tags = spans[0].tags
         self.assertEqual(tags.get('error', None), True)
         self.assertEqual(tags.get('sfx.error.kind', None), 'ValueError')
-        self.assertEqual(tags.get('sfx.error.object', None), '<class \'ValueError\'>')
+        self.assertEqual(tags.get('sfx.error.object', None), error_object
         self.assertEqual(tags.get('sfx.error.message', None), 'invalid value')
         assert 'sfx.error.stack' in tags
         assert 'invalid value' in tags['sfx.error.stack']
@@ -197,7 +201,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         tags = spans[0].tags
         self.assertEqual(tags.get('error', None), True)
         self.assertEqual(tags.get('sfx.error.kind', None), 'ValueError')
-        self.assertEqual(tags.get('sfx.error.object', None), '<class \'ValueError\'>')
+        self.assertEqual(tags.get('sfx.error.object', None), error_object
         self.assertEqual(tags.get('sfx.error.message', None), 'invalid value')
         assert 'fx.error.stack' in tags
         assert 'invalid value' in tags['sfx.error.stack']
@@ -268,7 +272,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         tags = spans[0].tags
         self.assertEqual(tags.get('error', None), True)
         self.assertEqual(tags.get('sfx.error.kind', None), 'ValueError')
-        self.assertEqual(tags.get('sfx.error.object', None), '<class \'ValueError\'>')
+        self.assertEqual(tags.get('sfx.error.object', None), error_object
         self.assertEqual(tags.get('sfx.error.message', None), 'invalid value')
 
     @skip_no_async_await
