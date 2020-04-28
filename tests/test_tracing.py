@@ -35,6 +35,10 @@ from .helpers.markers import (
 )
 
 
+error_object = '<class \'ValueError\'>'
+if sys.version_info.major == 2:
+    error_object = '<class \'exceptions.ValueError\'>'
+
 async_await_not_supported = (
     sys.version_info < (3, 5) or tornado_version < (5, 0)
 )
@@ -264,7 +268,7 @@ class TestTracing(TestTornadoTracingBase):
         tags = spans[0].tags
         self.assertEqual(tags.get('error', None), True)
         self.assertEqual(tags.get('sfx.error.kind', None), 'ValueError')
-        self.assertEqual(tags.get('sfx.error.object', None), '<class \'ValueError\'>')
+        self.assertEqual(tags.get('sfx.error.object', None), error_object)
         self.assertEqual(tags.get('sfx.error.message', None), 'invalid input')
         assert 'sfx.error.stack' in tags
         assert 'invalid input' in tags['sfx.error.stack']
