@@ -94,10 +94,7 @@ class BaseTornadoTracing(object):
                     result = wrapped(*args, **kwargs)
                     self._handle_wrapped_result(handler, result)
                 except Exception as exc:
-                    print('********************* trace decorator called')
                     _, _, tb = sys.exc_info()
-                    print('tracback:: ', tb)
-                    print('*********************')
                     self._finish_tracing(handler, error=exc, tb=tb)
                     raise
 
@@ -110,13 +107,9 @@ class BaseTornadoTracing(object):
         return full_class_name.rsplit('.')[-1]  # package-less name.
 
     def _finish_tracing_callback(self, future, handler):
-        print('****************')
-        print('handling future')
-        # error = future.exception()
         exc_info = future.exc_info()
         if exc_info:
-            # self._finish_tracing(handler, error=exc_info[1], tb=exc_info[2])
-            self._finish_tracing(handler, error=exc_info[1])
+            self._finish_tracing(handler, error=exc_info[1], tb=exc_info[2])
             return
         self._finish_tracing(handler)
 
