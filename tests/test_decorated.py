@@ -205,7 +205,7 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(tags.get('sfx.error.kind', None), 'ValueError')
         self.assertEqual(tags.get('sfx.error.object', None), error_object)
         self.assertEqual(tags.get('sfx.error.message', None), 'invalid value')
-        assert 'fx.error.stack' in tags
+        assert 'sfx.error.stack' in tags
         assert 'invalid value' in tags['sfx.error.stack']
         assert len(tags['sfx.error.stack']) > 50
 
@@ -276,6 +276,9 @@ class TestDecorated(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(tags.get('sfx.error.kind', None), 'ValueError')
         self.assertEqual(tags.get('sfx.error.object', None), error_object)
         self.assertEqual(tags.get('sfx.error.message', None), 'invalid value')
+        assert 'sfx.error.stack' in tags
+        assert 'invalid value' in tags['sfx.error.stack']
+        assert len(tags['sfx.error.stack']) > 50
 
     @skip_no_async_await
     def test_async_scope(self):
